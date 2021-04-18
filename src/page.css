@@ -1,0 +1,49 @@
+.center {
+position: fixed;
+top: 50%;
+left: 50%;
+margin-top: -180px;
+margin-left: -190px;
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+font-family: serif;
+}
+
+body {
+  height:100%;
+  margin: 0;
+  padding: 0;
+
+  background-image: url("9810052152.jpg"); /*Reference: https://www.123freevectors.com/abstract-light-pink-curve-background-vector-graphic-108388/*/
+}
+
+input {
+    width: 350px !important; 
+}
+
+.btn {
+    width: 300px; 
+}
+
+#course-list {
+	padding-left: 2rem;
+	padding-right: 2rem;
+}
+
+.col-12 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+
+.alert {
+	width: 300px;
+	text-align: center;
+	}
+
+
+#loginas{
+	text-align: center;
+}
+
