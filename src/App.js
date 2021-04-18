@@ -17,6 +17,7 @@ import './page.css';
 var isStaff = false;
 var isMember = false;
 var user_name = '';
+const currentURL = window.location.href
 
 export default function App() {
   return (
@@ -97,8 +98,6 @@ const Authorization = () => {
       })
         .then(response => response.json())
         .then(data => {
-          console.log(data);
-          console.log(data[0].message);
           if (data[0].message === 'Staff' || data[0].message === 'Member') {
             setLoginForm(false);
             setCorrectPassword(true);
@@ -200,7 +199,6 @@ const AddCourse = () => {
     function MySubmitHandler(e) {
       e.preventDefault();
       const data = { course_name: course_name, year: start_time.getFullYear(), month: start_time.getMonth(), day: start_time.getDay(), hours: start_time.getHours(), minutes: start_time.getMinutes() };
-      console.log("data", data);
       fetch('ClubManagement/addCourse', {
         method: 'POST',
         headers: {
@@ -368,7 +366,7 @@ const RegisterCourse = () => {
     useEffect(() => {
       const fetch = require('node-fetch');
       const fetchAbsolute = require('fetch-absolute');
-      const fetchApi = fetchAbsolute(fetch)('http://localhost:3000', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+      const fetchApi = fetchAbsolute(fetch)(currentURL, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
 
       fetchApi('/ClubManagement/getAllCourses').then(response => response.json())
         .then((result) => {
@@ -492,11 +490,10 @@ const CourseList = () => {
   useEffect(() => {
     const fetch = require('node-fetch');
     const fetchAbsolute = require('fetch-absolute');
-    const fetchApi = fetchAbsolute(fetch)('http://localhost:3000', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+    const fetchApi = fetchAbsolute(fetch)(currentURL, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
 
     fetchApi('/ClubManagement/getAllCourses').then(response => response.json())
       .then((result) => {
-        console.log('Hey!');
         setIsLoaded(true);
         setItems(result);
       },
@@ -542,9 +539,7 @@ const CourseDetail = () => {
   useEffect(() => {
     const fetch = require('node-fetch');
     const fetchAbsolute = require('fetch-absolute');
-    console.log("topicId", courseId);
-    const fetchApi = fetchAbsolute(fetch)('http://localhost:3000', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-    console.log(`/ClubManagement/getDetailOfACourse/${courseId}`);
+    const fetchApi = fetchAbsolute(fetch)(currentURL, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
     fetchApi(`/ClubManagement/getDetailOfACourse/${courseId}`).then(response => response.json())
       .then((result) => {
         setIsLoaded(true);
