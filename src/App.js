@@ -22,7 +22,7 @@ const currentURL = window.location.href
 export default function App() {
   return (
     <Router>
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <nav class="navbar navbar-expand navbar-light bg-light">
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav">
             <li class="nav-item active">
@@ -209,6 +209,7 @@ const AddCourse = () => {
         .then(response => response.json())
         .then(data => {
           if (data[0].message === 'ok') {
+            alert('You added ' + course_name + ' course!');
           } else {
             console.log("Wrong");
           }
@@ -550,7 +551,7 @@ const CourseDetail = () => {
           setError(error);
         }
       )
-  })
+  },[courseId])
 
   if (error) {
     return <div>Error: {error.message}</div>;
