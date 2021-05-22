@@ -12,12 +12,49 @@ import { Dropdown, FormControl } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import './page.css';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { makeObservable, observable, action } from "mobx"
+import { observer } from "mobx-react-lite"
 
 
-var isStaff = false;
-var isMember = false;
-var user_name = '';
-const currentURL = window.location.href
+class Global {
+
+  isStaff = false;
+  isMember = false;
+  isLogIn = false;
+  user_name = '';
+
+  constructor() {
+    makeObservable(this, {
+      isStaff: observable,
+      isMember: observable,
+      isLogIn: observable,
+      user_name: observable,
+      changeIsStaff: action,
+      changeIsMember: action,
+      changeUserName: action,
+      changeIsLogin: action,
+    });
+  }
+
+  changeIsStaff(bool) {
+    this.isStaff = bool
+  }
+  changeIsMember(bool) {
+    this.isMember = bool
+  }
+  changeIsLogin(bool) {
+    this.isLogIn = bool
+  }
+  changeUserName(name) {
+    this.user_name = name
+  }
+
+}
+
+const GlobalState = new Global();
+
+const currentURL = process.env.PUBLIC_URL
 
 export default function App() {
   return (
@@ -37,6 +74,9 @@ export default function App() {
             <li class="nav-item active">
               <Link class="nav-link" to="/registerCourse">Register Course</Link>
             </li>
+            <li class="nav-item active">
+              <Link class="nav-link" to="/statistics">Statistics</Link>
+            </li>
           </ul>
 
           <hr />
@@ -54,6 +94,9 @@ export default function App() {
             <Route path="/registerCourse">
               <RegisterCourse />
             </Route>
+            <Route path="/statistics">
+              <Statistics />
+            </Route>
           </Switch>
         </div>
       </nav>
@@ -62,15 +105,15 @@ export default function App() {
   );
 }
 
+
 //Authorization page
-const Authorization = () => {
-  const [showLoginForm, setLoginForm] = React.useState(true)
+const Authorization = observer(() => {
   const [correctPassword, setCorrectPassword] = React.useState(true)
   const logOut = () => {
-    setLoginForm(true)
-    isStaff = false;
-    isMember = false;
-    user_name = '';
+    GlobalState.changeIsLogin(false);
+    GlobalState.changeIsStaff(false);
+    GlobalState.changeIsMember(false);
+    GlobalState.changeUserName('');
   }
 
   const LoginForm = () => {
@@ -99,15 +142,15 @@ const Authorization = () => {
         .then(response => response.json())
         .then(data => {
           if (data[0].message === 'Staff' || data[0].message === 'Member') {
-            setLoginForm(false);
+            GlobalState.changeIsLogin(true);
             setCorrectPassword(true);
             if (data[0].message === 'Staff') {
-              isStaff = true;
-              user_name = username;
+              GlobalState.changeIsStaff(true);
+              GlobalState.changeUserName(username);
             }
             if (data[0].message === 'Member') {
-              isMember = true;
-              user_name = username;
+              GlobalState.changeIsMember(true);
+              GlobalState.changeUserName(username);
             }
           } else {
             alert("Wrong Password");
@@ -176,19 +219,19 @@ const Authorization = () => {
       <div>
         <h2>Club Member Management</h2>
         {correctPassword ? null : <WrongPassword />}
-        {showLoginForm ? <LoginForm /> : null}
-        {showLoginForm ? null : <LoginAs />}
-        {showLoginForm ? null : <LogoutButton />}
+        {GlobalState.isLogIn ? null : <LoginForm />}
+        {GlobalState.isLogIn ? <LoginAs /> : null}
+        {GlobalState.isLogIn ? <LogoutButton /> : null}
       </div>
     </div>
   )
-}
+})
 
 
 
 
 //Add course page
-const AddCourse = () => {
+const AddCourse = observer(() => {
   const AddCourseForm = () => {
     const [course_name, setcourseName] = useState('')
     const [start_time, setStartTime] = useState(new Date())
@@ -221,7 +264,6 @@ const AddCourse = () => {
 
     return (
       <div>
-
         <form onSubmit={MySubmitHandler}>
           <div class="mb-3">
             <label for="exampleInputEmail1" class="form-label">Course Name: </label>
@@ -246,7 +288,6 @@ const AddCourse = () => {
   }
 
   const NotStaff = () => {
-    console.log(isStaff)
     return (
       <div class="alert alert-danger" role="alert">
         You are not staff!
@@ -258,11 +299,11 @@ const AddCourse = () => {
     <div class="center">
       <div>
         <h2>Add Course</h2>
-        {isStaff ? <AddCourseForm /> : <NotStaff />}
+        {GlobalState.isStaff ? <AddCourseForm /> : <NotStaff />}
       </div>
     </div>
   )
-}
+})
 
 
 
@@ -270,9 +311,7 @@ const AddCourse = () => {
 
 
 //Register course page
-const RegisterCourse = () => {
-
-
+const RegisterCourse = observer(() => {
   const RegisteringCourseForm = () => {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -299,7 +338,6 @@ const RegisterCourse = () => {
     const CustomMenu = React.forwardRef(
       ({ children, style, className, 'aria-labelledby': labeledBy }, ref) => {
         const [value, setValue] = useState('');
-
         return (
           <div
             ref={ref}
@@ -333,8 +371,7 @@ const RegisterCourse = () => {
 
     function handleSubmit(e) {
       e.preventDefault();
-      const data = { member_name: user_name, course_name: course };
-      console.log("data", data);
+      const data = { member_name: GlobalState.user_name, course_name: course };
       fetch('ClubManagement/registerCourse', {
         method: 'POST',
         headers: {
@@ -344,10 +381,6 @@ const RegisterCourse = () => {
       })
         .then(response => response.json())
         .then(data => {
-          console.log('Success:', data);
-          // var message = JSON.stringify(data);
-          // console.log('message:', message);
-          // console.log('data[0].message:', data[0].message);
           if (data[0].message === 'ok') {
             console.log("Regitered");
             alert('You registered ' + course + ' course!');
@@ -371,7 +404,6 @@ const RegisterCourse = () => {
 
       fetchApi('/ClubManagement/getAllCourses').then(response => response.json())
         .then((result) => {
-          console.log('Hey!');
           setIsLoaded(true);
           setItems(result);
         },
@@ -419,32 +451,22 @@ const RegisterCourse = () => {
   return (
     <div class='center'>
       <h2>Register Course (Members Only)</h2>
-      { isMember ? <RegisteringCourseForm /> : <NotMember />}
+      { GlobalState.isMember ? <RegisteringCourseForm /> : <NotMember />}
     </div>
   );
-}
+})
 
 
 
 //Course list page
-const Courses = () => {
-
-
-  const NotLogin = () => {
-    return (
-      <div class="alert alert-danger" role="alert">
-        Please login!
-      </div>
-    )
-  }
-
+const Courses = observer(() => {
   return (
     <div class='center'>
       <h2>Course List</h2>
-      {(isStaff || isMember) ? <AllCourses /> : <NotLogin />}
+      {(GlobalState.isStaff || GlobalState.isMember) ? <AllCourses /> : <NotLogin />}
     </div>
   );
-}
+})
 
 
 const AllCourses = () => {
@@ -551,7 +573,7 @@ const CourseDetail = () => {
           setError(error);
         }
       )
-  },[courseId])
+  }, [courseId])
 
   if (error) {
     return <div>Error: {error.message}</div>;
@@ -564,5 +586,76 @@ const CourseDetail = () => {
   }
 }
 
+
+//The page that shows the numbers of members in each course
+const Statistics = observer(() => {
+  return (
+    <div class='center'>
+      <h2>Number of Members in Each Course</h2>
+      {(GlobalState.isStaff || GlobalState.isMember) ? <CoursesStatistics /> : <NotLogin />}
+    </div>
+  );
+})
+
+const CoursesStatistics = () => {
+  const [error, setError] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    const fetch = require('node-fetch');
+    const fetchAbsolute = require('fetch-absolute');
+    const fetchApi = fetchAbsolute(fetch)(currentURL, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+
+    fetchApi('/ClubManagement/getNumbersOfMembersInCourses').then(response => response.json())
+      .then((result) => {
+        setIsLoaded(true);
+        setItems(result);
+      },
+        (error) => {
+          setIsLoaded(true);
+          setError(error);
+        }
+      )
+  }, [])
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  } else if (!isLoaded) {
+    return <div>Loading...</div>;
+  } else {
+    return (
+      //Reference: https://recharts.org/en-US/examples/SimpleBarChart
+      <BarChart
+        width={400}
+        height={300}
+        data={items}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 0,
+          bottom: 5
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="number_of_members" fill="#8884d8" />
+      </BarChart>
+
+    );
+  }
+}
+
+
+const NotLogin = () => {
+  return (
+    <div class="alert alert-danger" role="alert">
+      Please login!
+    </div>
+  )
+}
 
 
